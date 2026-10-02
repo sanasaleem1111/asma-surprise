@@ -57,6 +57,14 @@ h1,h2{font-family:var(--head);font-weight:400;color:var(--deep);text-shadow:0 4p
 .glow{animation:pulse 2s infinite}
 @keyframes pulse{70%{box-shadow:0 8px 24px rgba(155,107,255,.45),0 0 0 18px rgba(255,126,182,0)}}
 
+/* ===== MUSIC GATE ===== */
+#gate{position:fixed;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(120,70,170,.18);backdrop-filter:blur(3px);transition:opacity .4s ease}
+#gate.out{opacity:0}
+#gate .card{transition:transform .4s ease}
+#gate.out .card{transform:scale(.92)}
+.gate-icon{display:block;font-size:3rem;margin-bottom:6px;animation:bob 1.6s ease-in-out infinite}
+.gate-text{margin:-8px 0 24px;line-height:1.6;font-size:1rem}
+
 /* ===== POPUPS ===== */
 #popupLayer{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(120,70,170,.18);backdrop-filter:blur(3px)}
 #dots{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));display:flex;gap:10px}
@@ -148,8 +156,18 @@ h1,h2{font-family:var(--head);font-weight:400;color:var(--deep);text-shadow:0 4p
   <source src="music.mp3" type="audio/mpeg">
 </audio>
 
+<!-- ===== SCREEN 0: MUSIC GATE (first thing she sees) ===== -->
+<div id="gate" role="dialog" aria-labelledby="gateTitle">
+  <div class="card" id="gateCard">
+    <span class="gate-icon" aria-hidden="true">🎵</span>
+    <h2 id="gateTitle">Before we begin...</h2>
+    <p class="gate-text">Put on your headphones and tap below to play our song.</p>
+    <button class="btn glow" id="playMusic">Play Music 🎵</button>
+  </div>
+</div>
+
 <!-- ===== SCREEN 1: LANDING ===== -->
-<main id="landing" class="screen fade">
+<main id="landing" class="screen fade hidden">
   <h1>Hey Asma 💖</h1>
   <p>My heart has something to tell you today... it's just one click away 💌 — Shahzaib</p>
   <button class="btn glow" id="start">Let's Go ✨</button>
@@ -344,7 +362,19 @@ $('mute').onclick=()=>{
   syncIcon();
 };
 syncIcon();
-autoStart();
+
+/* ===== GATE: music starts only after her tap, then the surprise begins ===== */
+$('playMusic').onclick=()=>{
+  autoMuted=false; music.muted=false; tryPlay();       // a real tap, so sound is allowed
+  const gate=$('gate'); gate.classList.add('out');
+  later(()=>{
+    gate.classList.add('hidden');
+    landing.classList.remove('hidden');
+    landing.classList.add('out');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>landing.classList.remove('out')));
+  },400);
+};
+$('playMusic').focus({preventScroll:true});
 };
 syncIcon();
 
